@@ -906,7 +906,7 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
 
     RTCAudioSessionConfiguration *audioCallConfig = [[RTCAudioSessionConfiguration alloc] init];
      audioCallConfig.category = AVAudioSessionCategoryPlayAndRecord;
-     audioCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionDefaultToSpeaker;
+     audioCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth;
      audioCallConfig.mode = AVAudioSessionModeVoiceChat;
 
     RTCAudioSessionConfiguration *videoCallConfig = [[RTCAudioSessionConfiguration alloc] init];
@@ -920,6 +920,21 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     }else{
         [RTCAudioSessionConfiguration setWebRTCConfiguration:audioCallConfig];
     }
+}
+
+- (void)resetAudioSession
+{
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][resetAudioSession] resetting audio session");
+#endif
+
+    RTCAudioSessionConfiguration *defaultConfig = [[RTCAudioSessionConfiguration alloc] init];
+    defaultConfig.category = AVAudioSessionCategoryAmbient;
+    defaultConfig.categoryOptions = 0;
+    defaultConfig.mode = AVAudioSessionModeDefault;
+
+    [RTCAudioSessionConfiguration setWebRTCConfiguration:defaultConfig];
+
 }
 
 + (BOOL)application:(UIApplication *)application
@@ -1069,6 +1084,7 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performEndCallAction]");
 #endif
+    [self resetAudioSession];
     isVideoCall = false;
     [self sendEventWithNameWrapper:RNCallKeepPerformEndCallAction body:@{ @"callUUID": [action.callUUID.UUIDString lowercaseString] }];
     [action fulfill];
@@ -1123,6 +1139,7 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
     [session audioSessionDidActivate:audioSession];
+    session.isAudioEnabled = true;
     [self sendEventWithNameWrapper:RNCallKeepDidActivateAudioSession body:nil];
 }
 
@@ -1133,6 +1150,7 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #endif
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
     [session audioSessionDidDeactivate:audioSession];
+    session.isAudioEnabled = false;
     [self sendEventWithNameWrapper:RNCallKeepDidDeactivateAudioSession body:nil];
 }
 
