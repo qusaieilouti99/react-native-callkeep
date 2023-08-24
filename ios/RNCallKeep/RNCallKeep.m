@@ -519,6 +519,14 @@ RCT_EXPORT_METHOD(setAudioRoute: (NSString *)inputName
         NSArray *ports = [RNCallKeep getAudioInputs];
         for (AVAudioSessionPortDescription *port in ports) {
             if ([port.portName isEqualToString:inputName]) {
+                if([port.portType isEqualToString:AVAudioSessionPortBuiltInMic] && isVideoCall){
+                    RTCAudioSessionConfiguration *audioCallConfig = [[RTCAudioSessionConfiguration alloc] init];
+                     audioCallConfig.category = AVAudioSessionCategoryPlayAndRecord;
+                     audioCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth;
+                     audioCallConfig.mode = AVAudioSessionModeVoiceChat;
+                    [self setConfig:audioCallConfig error:nil];
+                }
+
                 BOOL isSetted = [myAudioSession setPreferredInput:(AVAudioSessionPortDescription *)port error:&err];
                 if(!isSetted){
                     [NSException raise:@"setPreferredInput failed" format:@"error: %@", err];
@@ -640,6 +648,23 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     else{
         return nil;
     }
+}
+
+- (BOOL)setConfigWithoutLock:(RTCAudioSessionConfiguration *)config
+                       error:(NSError * _Nullable *)outError {
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    return [session setConfiguration:config error:outError];
+}
+
+- (BOOL)setConfig:(RTCAudioSessionConfiguration *)config
+            error:(NSError * _Nullable *)outError {
+
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    [session lockForConfiguration];
+    BOOL success = [self setConfigWithoutLock:config error:outError];
+    [session unlockForConfiguration];
+
+    return success;
 }
 
 + (NSString *) getSelectedAudioRoute
