@@ -13,7 +13,7 @@
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
 #import <React/RCTLog.h>
-#import "AudioSessionConfiguration.h"
+#import <WebRTC/WebRTC.h>
 #import <AVFoundation/AVAudioSession.h>
 #import <CallKit/CallKit.h>
 
@@ -132,12 +132,12 @@ RCT_EXPORT_MODULE()
 - (void)stopObserving
 {
     _hasListeners = FALSE;
-    
+
     // Fix for https://github.com/react-native-webrtc/react-native-callkeep/issues/406
     // We use Objective-C Key Value Coding(KVC) to sync _RTCEventEmitter_ `_listenerCount`.
     @try {
         [self setValue:@0 forKey:@"_listenerCount"];
-    } 
+    }
     @catch ( NSException *e ){
         NSLog(@"[RNCallKeep][stopObserving] exception: %@",e);
         NSLog(@"[RNCallKeep][stopObserving] RNCallKeep parent class RTCEventEmitter might have a broken state.");
@@ -781,6 +781,7 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     [RNCallKeep initCallKitProvider];
     [sharedProvider reportNewIncomingCallWithUUID:uuid update:callUpdate completion:^(NSError * _Nullable error) {
         RNCallKeep *callKeep = [RNCallKeep allocWithZone: nil];
+        [callKeep configureAudioSession];
         [callKeep sendEventWithNameWrapper:RNCallKeepDidDisplayIncomingCall body:@{
             @"error": error && error.localizedDescription ? error.localizedDescription : @"",
             @"errorCode": error ? [callKeep getIncomingCallErrorCode:error] : @"",
@@ -795,12 +796,7 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
             @"fromPushKit": fromPushKit ? @"1" : @"0",
             @"payload": payload ? payload : @"",
         }];
-        if (error == nil) {
-            // Workaround per https://forums.developer.apple.com/message/169511
-            if ([callKeep lessThanIos10_2]) {
-                [callKeep configureAudioSession];
-            }
-        }
+
         if (completion != nil) {
             completion();
         }
@@ -908,30 +904,22 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     NSLog(@"[RNCallKeep][configureAudioSession] Activating audio session");
 #endif
 
-    AudioSessionConfiguration *audioCallConfig = [[AudioSessionConfiguration alloc] init];
+    RTCAudioSessionConfiguration *audioCallConfig = [[RTCAudioSessionConfiguration alloc] init];
      audioCallConfig.category = AVAudioSessionCategoryPlayAndRecord;
      audioCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionDefaultToSpeaker;
      audioCallConfig.mode = AVAudioSessionModeVoiceChat;
 
-    AudioSessionConfiguration *videoCallConfig = [[AudioSessionConfiguration alloc] init];
+    RTCAudioSessionConfiguration *videoCallConfig = [[RTCAudioSessionConfiguration alloc] init];
      videoCallConfig.category = AVAudioSessionCategoryPlayAndRecord;
      videoCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth;
      videoCallConfig.mode = AVAudioSessionModeVideoChat;
 
-    AVAudioSession* audioSession = [AVAudioSession sharedInstance];
+
     if(isVideoCall){
-        [audioSession setCategory:videoCallConfig.category mode:videoCallConfig.mode options:videoCallConfig.categoryOptions error:nil];
+        [RTCAudioSessionConfiguration setWebRTCConfiguration:videoCallConfig];
     }else{
-        [audioSession setCategory:audioCallConfig.category mode:audioCallConfig.mode options:audioCallConfig.categoryOptions error:nil];
+        [RTCAudioSessionConfiguration setWebRTCConfiguration:audioCallConfig];
     }
-
-
-    double sampleRate = 44100.0;
-    [audioSession setPreferredSampleRate:sampleRate error:nil];
-
-    NSTimeInterval bufferDuration = .005;
-    [audioSession setPreferredIOBufferDuration:bufferDuration error:nil];
-    [audioSession setActive:TRUE error:nil];
 }
 
 + (BOOL)application:(UIApplication *)application
@@ -1071,7 +1059,6 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performAnswerCallAction]");
 #endif
-    [self configureAudioSession];
     [self sendEventWithNameWrapper:RNCallKeepPerformAnswerCallAction body:@{ @"callUUID": [action.callUUID.UUIDString lowercaseString] }];
     [action fulfill];
 }
@@ -1127,14 +1114,15 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:didActivateAudioSession]");
 #endif
-    NSDictionary *userInfo
-    = @{
-        AVAudioSessionInterruptionTypeKey: [NSNumber numberWithInt:AVAudioSessionInterruptionTypeEnded],
-        AVAudioSessionInterruptionOptionKey: [NSNumber numberWithInt:AVAudioSessionInterruptionOptionShouldResume]
-    };
-    [[NSNotificationCenter defaultCenter] postNotificationName:AVAudioSessionInterruptionNotification object:nil userInfo:userInfo];
+//    NSDictionary *userInfo
+//    = @{
+//        AVAudioSessionInterruptionTypeKey: [NSNumber numberWithInt:AVAudioSessionInterruptionTypeEnded],
+//        AVAudioSessionInterruptionOptionKey: [NSNumber numberWithInt:AVAudioSessionInterruptionOptionShouldResume]
+//    };
+//    [[NSNotificationCenter defaultCenter] postNotificationName:AVAudioSessionInterruptionNotification object:nil userInfo:userInfo];
 
-
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    [session audioSessionDidActivate:audioSession];
     [self sendEventWithNameWrapper:RNCallKeepDidActivateAudioSession body:nil];
 }
 
@@ -1143,6 +1131,8 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:didDeactivateAudioSession]");
 #endif
+    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    [session audioSessionDidDeactivate:audioSession];
     [self sendEventWithNameWrapper:RNCallKeepDidDeactivateAudioSession body:nil];
 }
 
