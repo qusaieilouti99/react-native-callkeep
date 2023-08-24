@@ -911,7 +911,7 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
 
     RTCAudioSessionConfiguration *videoCallConfig = [[RTCAudioSessionConfiguration alloc] init];
      videoCallConfig.category = AVAudioSessionCategoryPlayAndRecord;
-     videoCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth;
+     videoCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionDefaultToSpeaker;
      videoCallConfig.mode = AVAudioSessionModeVideoChat;
 
 
