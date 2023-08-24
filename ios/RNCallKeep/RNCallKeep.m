@@ -336,6 +336,7 @@ RCT_EXPORT_METHOD(startCall:(NSString *)uuidString
     NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:uuidString];
     CXHandle *callHandle = [[CXHandle alloc] initWithType:_handleType value:handle];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
+    isVideoCall = video;
     [startCallAction setVideo:video];
     [startCallAction setContactIdentifier:contactIdentifier];
 
@@ -911,7 +912,7 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
 
     RTCAudioSessionConfiguration *videoCallConfig = [[RTCAudioSessionConfiguration alloc] init];
      videoCallConfig.category = AVAudioSessionCategoryPlayAndRecord;
-     videoCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionDefaultToSpeaker;
+     videoCallConfig.categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth;
      videoCallConfig.mode = AVAudioSessionModeVideoChat;
 
 
