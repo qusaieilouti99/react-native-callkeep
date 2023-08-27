@@ -787,17 +787,16 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             Log.w(TAG, "[RNCallKeepModule] setMutedCall ignored because no connection found, uuid: " + uuid);
             return;
         }
-
-        CallAudioState newAudioState = null;
         //if the requester wants to mute, do that. otherwise unmute
-        if (shouldMute) {
-            newAudioState = new CallAudioState(true, conn.getCallAudioState().getRoute(),
-                    conn.getCallAudioState().getSupportedRouteMask());
-        } else {
-            newAudioState = new CallAudioState(false, conn.getCallAudioState().getRoute(),
-                    conn.getCallAudioState().getSupportedRouteMask());
+        Intent intent = new Intent(shouldMute ? ACTION_MUTE_CALL : ACTION_UNMUTE_CALL);
+        HashMap<String, String> attributeMap = new HashMap<String, String>();
+        attributeMap.put(EXTRA_CALL_UUID,uuid);
+        if (attributeMap != null) {
+            Bundle extras = new Bundle();
+            extras.putSerializable("attributeMap", attributeMap);
+            intent.putExtras(extras);
         }
-        conn.onCallAudioStateChanged(newAudioState);
+        LocalBroadcastManager.getInstance(this.reactContext).sendBroadcast(intent);
     }
     /**
      * toggle audio route for speaker via connection service function
