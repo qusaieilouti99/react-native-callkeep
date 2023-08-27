@@ -457,16 +457,17 @@ public class VoiceConnectionService extends ConnectionService {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Context context = getApplicationContext();
             TelecomManager telecomManager = (TelecomManager) context.getSystemService(context.TELECOM_SERVICE);
-            PhoneAccount phoneAccount = telecomManager.getPhoneAccount(request.getAccountHandle());
-
-            //If the phone account is self managed, then this connection must also be self managed.
-            if((phoneAccount.getCapabilities() & PhoneAccount.CAPABILITY_SELF_MANAGED) == PhoneAccount.CAPABILITY_SELF_MANAGED) {
-                Log.d(TAG, "[VoiceConnectionService] PhoneAccount is SELF_MANAGED, so connection will be too");
-                connection.setConnectionProperties(Connection.PROPERTY_SELF_MANAGED);
-            }
-            else {
-                Log.d(TAG, "[VoiceConnectionService] PhoneAccount is not SELF_MANAGED, so connection won't be either");
-            }
+          // Because we will always be self managed mode we commented this out. because getPhoneAccount need additional permission we can live without it
+//             PhoneAccount phoneAccount = telecomManager.getPhoneAccount(request.getAccountHandle());
+//
+//             //If the phone account is self managed, then this connection must also be self managed.
+//             if((phoneAccount.getCapabilities() & PhoneAccount.CAPABILITY_SELF_MANAGED) == PhoneAccount.CAPABILITY_SELF_MANAGED) {
+//                 Log.d(TAG, "[VoiceConnectionService] PhoneAccount is SELF_MANAGED, so connection will be too");
+//                 connection.setConnectionProperties(Connection.PROPERTY_SELF_MANAGED);
+//             }
+//             else {
+//                 Log.d(TAG, "[VoiceConnectionService] PhoneAccount is not SELF_MANAGED, so connection won't be either");
+//             }
         }
 
         connection.setInitializing();
