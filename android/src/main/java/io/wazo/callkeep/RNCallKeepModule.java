@@ -853,7 +853,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     }
 
     @ReactMethod
-    public void getAudioRoutes(Promise promise){
+    public void getAudioRoutes(String uuid,Promise promise){
         try {
             Context context = this.getAppContext();
             if (context == null) {
@@ -865,7 +865,18 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             WritableArray devices = Arguments.createArray();
             ArrayList<String> typeChecker = new ArrayList<>();
             AudioDeviceInfo[] audioDeviceInfo = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS + AudioManager.GET_DEVICES_OUTPUTS);
-            String selectedAudioRoute = getSelectedAudioRoute(audioManager);
+            String selectedAudioRoute = "";
+
+            Connection conn = VoiceConnectionService.getConnection(uuid);
+            if (conn == null) {
+                selectedAudioRoute = getSelectedAudioRoute(audioManager);
+            }else{
+                // If connection exist get the active route from it otherwise work as before.
+                // sometimes a conflict happens when changing between routes using setAudioRoute
+                // and getting them using getAudioRoutes so this fixed it
+                selectedAudioRoute = getCallAudioRouteType(conn.getCallAudioState().getRoute());
+            }
+
             for (AudioDeviceInfo device : audioDeviceInfo){
                 String type = getAudioRouteType(device.getType());
                 if(type != null && !typeChecker.contains(type)) {
@@ -896,6 +907,21 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             case(AudioDeviceInfo.TYPE_BUILTIN_MIC):
                 return "Phone";
             case(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER):
+                return "Speaker";
+            default:
+                return null;
+        }
+    }
+
+    private String getCallAudioRouteType(int type){
+        switch (type){
+            case(CallAudioState.ROUTE_BLUETOOTH):
+                return "Bluetooth";
+            case(CallAudioState.ROUTE_WIRED_HEADSET):
+                return "Headset";
+            case(CallAudioState.ROUTE_EARPIECE):
+                return "Phone";
+            case(CallAudioState.ROUTE_SPEAKER):
                 return "Speaker";
             default:
                 return null;
