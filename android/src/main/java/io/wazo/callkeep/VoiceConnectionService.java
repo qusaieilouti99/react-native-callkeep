@@ -457,6 +457,7 @@ public class VoiceConnectionService extends ConnectionService {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Context context = getApplicationContext();
             TelecomManager telecomManager = (TelecomManager) context.getSystemService(context.TELECOM_SERVICE);
+            connection.setConnectionProperties(Connection.PROPERTY_SELF_MANAGED);
           // Because we will always be self managed mode we commented this out. because getPhoneAccount need additional permission we can live without it
 //             PhoneAccount phoneAccount = telecomManager.getPhoneAccount(request.getAccountHandle());
 //
