@@ -873,7 +873,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                  // If connection exist get the active route from it otherwise work as before.
                  // sometimes a conflict happens when changing between routes using setAudioRoute
                  // and getting them using getAudioRoutes so this fixed it
-                 CallAudioState state = conn.getCallAudioState()
+                 CallAudioState state = conn.getCallAudioState();
                  if(state == null){
                      selectedAudioRoute = getSelectedAudioRoute(audioManager);
                  }else{
