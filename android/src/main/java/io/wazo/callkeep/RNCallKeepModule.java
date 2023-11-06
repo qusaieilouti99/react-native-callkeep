@@ -787,17 +787,16 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             Log.w(TAG, "[RNCallKeepModule] setMutedCall ignored because no connection found, uuid: " + uuid);
             return;
         }
-
-        CallAudioState newAudioState = null;
         //if the requester wants to mute, do that. otherwise unmute
-        if (shouldMute) {
-            newAudioState = new CallAudioState(true, conn.getCallAudioState().getRoute(),
-                    conn.getCallAudioState().getSupportedRouteMask());
-        } else {
-            newAudioState = new CallAudioState(false, conn.getCallAudioState().getRoute(),
-                    conn.getCallAudioState().getSupportedRouteMask());
+        Intent intent = new Intent(shouldMute ? ACTION_MUTE_CALL : ACTION_UNMUTE_CALL);
+        HashMap<String, String> attributeMap = new HashMap<String, String>();
+        attributeMap.put(EXTRA_CALL_UUID,uuid);
+        if (attributeMap != null) {
+            Bundle extras = new Bundle();
+            extras.putSerializable("attributeMap", attributeMap);
+            intent.putExtras(extras);
         }
-        conn.onCallAudioStateChanged(newAudioState);
+        LocalBroadcastManager.getInstance(this.reactContext).sendBroadcast(intent);
     }
     /**
      * toggle audio route for speaker via connection service function
@@ -853,7 +852,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     }
 
     @ReactMethod
-    public void getAudioRoutes(Promise promise){
+    public void getAudioRoutes(String uuid,Promise promise){
         try {
             Context context = this.getAppContext();
             if (context == null) {
@@ -865,7 +864,23 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             WritableArray devices = Arguments.createArray();
             ArrayList<String> typeChecker = new ArrayList<>();
             AudioDeviceInfo[] audioDeviceInfo = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS + AudioManager.GET_DEVICES_OUTPUTS);
-            String selectedAudioRoute = getSelectedAudioRoute(audioManager);
+            String selectedAudioRoute = "";
+
+            Connection conn = VoiceConnectionService.getConnection(uuid);
+            if (conn == null) {
+                selectedAudioRoute = getSelectedAudioRoute(audioManager);
+            }else{
+                 // If connection exist get the active route from it otherwise work as before.
+                 // sometimes a conflict happens when changing between routes using setAudioRoute
+                 // and getting them using getAudioRoutes so this fixed it
+                 CallAudioState state = conn.getCallAudioState();
+                 if(state == null){
+                     selectedAudioRoute = getSelectedAudioRoute(audioManager);
+                 }else{
+                     selectedAudioRoute = getCallAudioRouteType(state.getRoute());
+                 }
+            }
+
             for (AudioDeviceInfo device : audioDeviceInfo){
                 String type = getAudioRouteType(device.getType());
                 if(type != null && !typeChecker.contains(type)) {
@@ -896,6 +911,21 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             case(AudioDeviceInfo.TYPE_BUILTIN_MIC):
                 return "Phone";
             case(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER):
+                return "Speaker";
+            default:
+                return null;
+        }
+    }
+
+    private String getCallAudioRouteType(int type){
+        switch (type){
+            case(CallAudioState.ROUTE_BLUETOOTH):
+                return "Bluetooth";
+            case(CallAudioState.ROUTE_WIRED_HEADSET):
+                return "Headset";
+            case(CallAudioState.ROUTE_EARPIECE):
+                return "Phone";
+            case(CallAudioState.ROUTE_SPEAKER):
                 return "Speaker";
             default:
                 return null;

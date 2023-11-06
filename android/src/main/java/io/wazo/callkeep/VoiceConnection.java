@@ -88,17 +88,10 @@ public class VoiceConnection extends Connection {
 
     @Override
     public void onCallAudioStateChanged(CallAudioState state) {
-        Log.d(TAG, "[VoiceConnection] onCallAudioStateChanged muted :" + (state.isMuted() ? "true" : "false"));
+        Log.d(TAG, "[VoiceConnection] onCallAudioStateChanged ");
 
         handle.put("output", CallAudioState.audioRouteToString(state.getRoute()));
         sendCallRequestToActivity(ACTION_DID_CHANGE_AUDIO_ROUTE, handle);
-
-        if (state.isMuted() == this.isMuted) {
-            return;
-        }
-
-        this.isMuted = state.isMuted();
-        sendCallRequestToActivity(isMuted ? ACTION_MUTE_CALL : ACTION_UNMUTE_CALL, handle);
     }
 
     @Override
