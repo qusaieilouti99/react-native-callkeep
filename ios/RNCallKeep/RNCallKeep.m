@@ -151,9 +151,9 @@ RCT_EXPORT_MODULE()
     NSInteger reason = [[info valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
     NSString *output = [RNCallKeep getAudioOutput];
 
-    if (output == nil) {
-        return;
-    }
+//     if (output == nil) {
+//         return;
+//     }
 
     [self sendEventWithName:RNCallKeepDidChangeAudioRoute body:@{
         @"output": output,
