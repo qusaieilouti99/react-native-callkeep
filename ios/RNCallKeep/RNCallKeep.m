@@ -154,17 +154,22 @@ RCT_EXPORT_MODULE()
 - (void)onAudioRouteChange:(NSNotification *)notification
 {
     NSDictionary *info = notification.userInfo;
-    NSInteger reason = [[info valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-    NSString *output = [RNCallKeep getAudioOutput];
+    NSNumber *reasonValue = [info valueForKey:AVAudioSessionRouteChangeReasonKey];
+    if (reasonValue != nil) {
+        NSInteger reason = [reasonValue integerValue];
+        NSString *output = [RNCallKeep getAudioOutput];
 
-//     if (output == nil) {
-//         return;
-//     }
+    #ifdef DEBUG
+        NSLog(@"[RNCallKeep][onAudioRouteChange]");
+    #endif
 
-    [self sendEventWithName:RNCallKeepDidChangeAudioRoute body:@{
-        @"output": output,
-        @"reason": @(reason),
-    }];
+        [self sendEventWithName:RNCallKeepDidChangeAudioRoute body:@{
+            @"output": (output != nil) ? output : [NSNull null],
+            @"reason": @(reason),
+        }];
+    } else {
+        NSLog(@"[RNCallKeep][onAudioRouteChange] Invalid or missing AVAudioSessionRouteChangeReasonKey");
+    }
 }
 
 - (void)sendEventWithNameWrapper:(NSString *)name body:(id)body {
