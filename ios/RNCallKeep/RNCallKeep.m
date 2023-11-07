@@ -73,6 +73,12 @@ RCT_EXPORT_MODULE()
 
         self.callKeepProvider = sharedProvider;
         [self.callKeepProvider setDelegate:self queue:nil];
+
+        // workaround because sometimes this event is not sent so we send it always initially
+        [self sendEventWithNameWrapper:RNCallKeepDidChangeAudioRoute body:@{
+             @"output": @"",
+             @"reason": @(0),
+         }];
     }
     return self;
 }
@@ -667,19 +673,25 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
     return success;
 }
 
-+ (NSString *) getSelectedAudioRoute
++ (NSString *)getSelectedAudioRoute
 {
     AVAudioSession* myAudioSession = [AVAudioSession sharedInstance];
     AVAudioSessionRouteDescription *currentRoute = [myAudioSession currentRoute];
     NSArray *selectedOutputs = currentRoute.outputs;
 
-    AVAudioSessionPortDescription *selectedOutput = selectedOutputs[0];
+    if (selectedOutputs.count > 0) {
+        AVAudioSessionPortDescription *selectedOutput = selectedOutputs[0];
 
-    if(selectedOutput && [selectedOutput.portType isEqualToString:AVAudioSessionPortBuiltInReceiver]) {
-        return @"Phone";
+        if (selectedOutput && [selectedOutput.portType isEqualToString:AVAudioSessionPortBuiltInReceiver]) {
+            return @"Phone";
+        }
+
+        return [RNCallKeep getAudioInputType: selectedOutput.portType];
+    } else {
+        // Handle the case where the array is empty (no selected outputs).
+        // You may want to return a default value or handle this case appropriately.
+        return @"No Output Selected";
     }
-
-    return [RNCallKeep getAudioInputType: selectedOutput.portType];
 }
 
 - (void)requestTransaction:(CXTransaction *)transaction
@@ -943,8 +955,10 @@ RCT_EXPORT_METHOD(getAudioRoutes: (RCTPromiseResolveBlock)resolve
 
     if(isVideoCall){
         [RTCAudioSessionConfiguration setWebRTCConfiguration:videoCallConfig];
+        [self setConfig:videoCallConfig error:nil]; // Rog3a
     }else{
         [RTCAudioSessionConfiguration setWebRTCConfiguration:audioCallConfig];
+        [self setConfig:audioCallConfig error:nil]; // Rog3a
     }
 }
 
@@ -1151,11 +1165,12 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #endif
 }
 
+// this event is not reachable on the last test, session.isAudioEnabled = true; this line becomes true when we set the webrtc audio configration
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession
 {
-#ifdef DEBUG
+//#ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:didActivateAudioSession]");
-#endif
+//#endif
 //    NSDictionary *userInfo
 //    = @{
 //        AVAudioSessionInterruptionTypeKey: [NSNumber numberWithInt:AVAudioSessionInterruptionTypeEnded],
