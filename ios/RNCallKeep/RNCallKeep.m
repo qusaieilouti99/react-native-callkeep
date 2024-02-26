@@ -1092,6 +1092,10 @@ continueUserActivity:(NSUserActivity *)userActivity
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:performStartCallAction]");
 #endif
+
+    [reportConnectingOutgoingCallWithUUID:action.callUUID.UUIDString];
+
+    [reportConnectedOutgoingCallWithUUID:action.callUUID.UUIDString];
     //do this first, audio sessions are flakey
     [self configureAudioSession];
     //tell the JS to actually make the call
