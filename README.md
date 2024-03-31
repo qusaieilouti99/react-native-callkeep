@@ -219,7 +219,7 @@ Self Managed calling apps are an advanced topic, and there are many steps involv
 | [setForegroundServiceSettings()](#setForegroundServiceSettings)   | `Promise<void>`     |  ❌  |   ✅    |
 | [canMakeMultipleCalls()](#canMakeMultipleCalls)                   | `Promise<void>`     |  ❌  |   ✅    |
 | [setCurrentCallActive()](#setCurrentCallActive)                   | `Promise<void>`     |  ❌  |   ✅    |
-| [checkIsInManagedCall()](#setAvailable)                           | `Promise<Boolean>`  |  ❌  |   ✅    |
+| [checkIsInCall()](#setAvailable)                           | `Promise<Boolean>`  |  ❌  |   ✅    |
 | [isCallActive()](#isCallActive)                                   | `Promise<Boolean>`  |  ✅  |   ❌    |
 | [getCalls()](#getCalls)                                           | `Promise<Object[]>` |  ✅  |   ❌    |
 | [displayIncomingCall()](#displayIncomingCall)                     | `Promise<void>`     |  ✅  |   ✅    |
@@ -317,13 +317,13 @@ RNCallKeep.setCurrentCallActive(uuid);
 - `uuid`: string
   - The `uuid` used for `startCall` or `displayIncomingCall`
 
-### checkIsInManagedCall
+### checkIsInCall
 _This feature is available only on Android._
 
-Returns true if there is an active native call
+Returns true if there is an active call, managed or self-managed
 
 ```js
-RNCallKeep.checkIsInManagedCall();
+RNCallKeep.checkIsInCall();
 ```
 
 

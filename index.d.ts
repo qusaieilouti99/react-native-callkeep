@@ -279,6 +279,6 @@ declare module 'react-native-callkeep' {
     /**
      * @descriptions Android Only, Check if there is active native call
      */
-    static checkIsInManagedCall(): Promise<boolean>
+    static checkIsInCall(): Promise<boolean>
   }
 }

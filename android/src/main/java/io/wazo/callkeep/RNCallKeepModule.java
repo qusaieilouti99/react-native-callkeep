@@ -240,10 +240,10 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                  case TelephonyManager.CALL_STATE_OFFHOOK:
                      // Phone call is active -- off the hook.
                       // Check if there is active call in native
-                      boolean isInManagedCall = RNCallKeepModule.this.checkIsInManagedCall();
+                      boolean isInCall = RNCallKeepModule.this.checkIsInCall();
 
                       // Only let the JS side know if there is active app call & active native call
-                      if(RNCallKeepModule.this.hasActiveCall && isInManagedCall){
+                      if(RNCallKeepModule.this.hasActiveCall && isInCall){
                          WritableMap args = Arguments.createMap();
                          RNCallKeepModule.this.sendEventToJS("RNCallKeepHasActiveCall",args);
                       }else if(VoiceConnectionService.currentConnections.size() > 0){
@@ -274,10 +274,10 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                       // Phone call is active -- off the hook.
 
                       // Check if there is active call in native
-                      boolean isInManagedCall = RNCallKeepModule.this.checkIsInManagedCall();
+                      boolean isInCall = RNCallKeepModule.this.checkIsInCall();
 
                       // Only let the JS side know if there is active app call & active native call
-                      if(RNCallKeepModule.this.hasActiveCall && isInManagedCall){
+                      if(RNCallKeepModule.this.hasActiveCall && isInCall){
                           WritableMap args = Arguments.createMap();
                           RNCallKeepModule.this.sendEventToJS("RNCallKeepHasActiveCall",args);
                       }else if(VoiceConnectionService.currentConnections.size() > 0){
@@ -322,20 +322,20 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         }
     }
 
-    public boolean checkIsInManagedCall() {
+    public boolean checkIsInCall() {
         Context context = this.getAppContext();
         int permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
 
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                return telecomManager.isInManagedCall();
+                return telecomManager.isInCall();
         }
         return false;
     }
 
     @ReactMethod
-    public void checkIsInManagedCall(Promise promise) {
-        boolean isInManagedCall = this.checkIsInManagedCall();
-        promise.resolve(isInManagedCall);
+    public void checkIsInCall(Promise promise) {
+        boolean isInCall = this.checkIsInCall();
+        promise.resolve(isInCall);
     }
 
     @ReactMethod
