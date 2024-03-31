@@ -91,6 +91,7 @@ public class VoiceConnectionService extends ConnectionService {
 
     public static Map<String, VoiceConnection> currentConnections = new HashMap<>();
     public static Boolean hasOutgoingCall = false;
+    public static Boolean hasActiveCall = false;
     public static VoiceConnectionService currentConnectionService = null;
 
     public static Connection getConnection(String connectionId) {
@@ -155,6 +156,7 @@ public class VoiceConnectionService extends ConnectionService {
     public static void deinitConnection(String connectionId) {
         Log.d(TAG, "[VoiceConnectionService] deinitConnection:" + connectionId);
         VoiceConnectionService.hasOutgoingCall = false;
+        VoiceConnectionService.hasActiveCall = false;
 
         currentConnectionService.stopForegroundService();
 

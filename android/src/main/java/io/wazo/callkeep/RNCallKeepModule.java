@@ -130,7 +130,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     private static WritableMap _settings;
     private WritableNativeArray delayedEvents;
     private boolean hasListeners = false;
-    private boolean hasActiveCall = false;
+
 
     public static RNCallKeepModule getInstance(ReactApplicationContext reactContext, boolean realContext) {
         if (instance == null) {
@@ -243,12 +243,12 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                       boolean isInCall = RNCallKeepModule.this.checkIsInCall();
 
                       // Only let the JS side know if there is active app call & active native call
-                      if(RNCallKeepModule.this.hasActiveCall && isInCall){
+                      if(VoiceConnectionService.hasActiveCall && isInCall){
                          WritableMap args = Arguments.createMap();
                          RNCallKeepModule.this.sendEventToJS("RNCallKeepHasActiveCall",args);
                       }else if(VoiceConnectionService.currentConnections.size() > 0){
                         // Will enter here for the first time to mark the app has active call
-                         RNCallKeepModule.this.hasActiveCall = true;
+                         VoiceConnectionService.hasActiveCall = true;
                       }
                      break;
                  case TelephonyManager.CALL_STATE_IDLE:
@@ -277,12 +277,12 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                       boolean isInCall = RNCallKeepModule.this.checkIsInCall();
 
                       // Only let the JS side know if there is active app call & active native call
-                      if(RNCallKeepModule.this.hasActiveCall && isInCall){
+                      if(VoiceConnectionService.hasActiveCall && isInCall){
                           WritableMap args = Arguments.createMap();
                           RNCallKeepModule.this.sendEventToJS("RNCallKeepHasActiveCall",args);
                       }else if(VoiceConnectionService.currentConnections.size() > 0){
                         // Will enter here for the first time to mark the app has active call
-                          RNCallKeepModule.this.hasActiveCall = true;
+                          VoiceConnectionService.hasActiveCall = true;
                       }
                       break;
                   case TelephonyManager.CALL_STATE_IDLE:
@@ -533,7 +533,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         audioManager.setMode(0);
         conn.onDisconnect();
         this.stopListenToNativeCallsState();
-        this.hasActiveCall = false;
+
         Log.d(TAG, "[RNCallKeepModule] endCall executed, uuid: " + uuid);
     }
 
@@ -552,7 +552,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             connectionToEnd.onDisconnect();
         }
         this.stopListenToNativeCallsState();
-        this.hasActiveCall = false;
+
         Log.d(TAG, "[RNCallKeepModule] endAllCalls executed");
     }
 
