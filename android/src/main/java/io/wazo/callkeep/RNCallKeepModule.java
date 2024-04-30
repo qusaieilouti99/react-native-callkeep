@@ -332,6 +332,10 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         return false;
     }
 
+    public boolean hasLocalActiveCall() {
+        return VoiceConnectionService.hasActiveCall;
+    }
+
     @ReactMethod
     public void checkIsInCall(Promise promise) {
         boolean isInCall = this.checkIsInCall();
@@ -718,6 +722,8 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             return;
         }
         conn.reportDisconnect(reason);
+
+        this.stopListenToNativeCallsState();
     }
 
    @Override

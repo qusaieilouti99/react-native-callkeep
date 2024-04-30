@@ -201,7 +201,16 @@ RCT_EXPORT_MODULE()
 }
 
 + (NSString *) getAudioOutput {
-    return [AVAudioSession sharedInstance].currentRoute.outputs.count > 0 ? [AVAudioSession sharedInstance].currentRoute.outputs[0].portType : nil;
+    @try{
+        NSArray<AVAudioSessionPortDescription *>* outputs = [AVAudioSession sharedInstance].currentRoute.outputs;
+        if(outputs != nil && outputs.count > 0){
+            return outputs[0].portType;
+        }
+    } @catch(NSException* error) {
+        NSLog(@"getAudioOutput error :%@", [error description]);
+    }
+
+    return nil;
 }
 
 + (void)setup:(NSDictionary *)options {
