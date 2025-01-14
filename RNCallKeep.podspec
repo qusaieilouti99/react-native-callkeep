@@ -14,6 +14,6 @@ Pod::Spec.new do |s|
   s.platform            = :ios, "8.0"
   s.source_files        = "ios/RNCallKeep/*.{h,m}"
   s.dependency 'React'
-  s.dependency 'JitsiWebRTC', '~> 118.0.0'
+  s.dependency 'JitsiWebRTC', '~> 124.0.0'
 end
 
